@@ -32,7 +32,18 @@ export async function createResult(req,res){
             wrong:computedWromg,
             user:req.user.id
         };
-const created = await Result.create(payload);
+        
+        // Calculate score and performance
+        const total = Number(totalQuestions) || 0;
+        const correctCount = Number(correct) || 0;
+        payload.score = total ? Math.round((correctCount/total)*100) : 0;
+        
+        if(payload.score >= 85) payload.performance = 'Excellent';
+        else if(payload.score >= 65) payload.performance = 'Good';
+        else if(payload.score >= 45) payload.performance = 'Average';
+        else payload.performance = 'Needs Work';
+        
+        const created = await Result.create(payload);
 return res.status(201).json({
     success:true,
     message:"Result created",
