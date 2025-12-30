@@ -149,19 +149,21 @@ export default function Sidebar() {
 
     try {
       await axios.post(
-        `${API_BASE}/api/results`,
+        `${API_BASE}/api/result`,
         {
+          title: `${selectedTech}-${selectedLevel}`,
           technology: selectedTech,
           level: selectedLevel,
-          total: score.total,
+          totalQuestions: score.total,
           correct: score.correct,
-          percentage: score.percentage,
+          wrong: score.total - score.correct,
         },
         { headers: getAuthHeader() }
       );
-      toast.success("Result saved");
+      toast.success("Result saved successfully!");
     } catch (err) {
-      toast.error("Result not saved");
+      console.error("Submit error:", err);
+      toast.error("Failed to save result");
       submittedRef.current = false;
     }
   };
