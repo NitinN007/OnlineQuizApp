@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
+import 'dotenv/config';
+
 export const connectDb = async ()=>{
     try {
-        await mongoose.connect('mongodb+srv://nitin:nitin007@cluster0.hbuugmo.mongodb.net/QuizApp');
+        await mongoose.connect(process.env.MONGODB_URI);
         console.log("Db connected");
     } catch(error) {
         console.error("DB Connection Error:", error.message);
