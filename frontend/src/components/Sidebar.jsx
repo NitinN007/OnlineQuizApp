@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import quizApi from "../services/quizApi";
+import { useNavigate } from "react-router-dom";
 import {
   Code,
   Coffee,
@@ -14,12 +15,16 @@ import {
   Target,
   Terminal,
   Zap,
+  LogIn,
+  LogOut,
 } from "lucide-react";
 
 const API_BASE = "http://localhost:4000";
 const QUIZ_DURATION = 60; // 1 minute in seconds
 
 export default function Sidebar() {
+  const navigate = useNavigate();
+
   const [selectedTech, setSelectedTech] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -34,13 +39,14 @@ export default function Sidebar() {
   const [timer, setTimer] = useState(QUIZ_DURATION);
   const [isQuizActive, setIsQuizActive] = useState(false);
 
+  // ✅ Login state
+  const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("authToken"));
+
   const submittedRef = useRef(false);
 
   // ✅ RESPONSIVE SIDEBAR
   useEffect(() => {
     const handleResize = () => {
-      // Desktop -> open sidebar
-      // Mobile -> close sidebar by default
       setIsSidebarOpen(window.innerWidth >= 768);
     };
 
@@ -49,14 +55,40 @@ export default function Sidebar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // ✅ keep auth state updated
+  useEffect(() => {
+    const syncAuth = () => setLoggedIn(!!localStorage.getItem("authToken"));
+
+    window.addEventListener("storage", syncAuth);
+    window.addEventListener("authchanged", syncAuth);
+
+    return () => {
+      window.removeEventListener("storage", syncAuth);
+      window.removeEventListener("authchanged", syncAuth);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.clear();
+
+    window.dispatchEvent(
+      new CustomEvent("authchanged", { detail: { user: null } })
+    );
+
+    setLoggedIn(false);
+    toast.success("Logged out!");
+
+    setIsSidebarOpen(false);
+    navigate("/login");
+  };
+
   // ✅ TIMER
   useEffect(() => {
     let interval;
 
     if (isQuizActive && timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
+      interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
     } else if (timer === 0 && isQuizActive) {
       setShowResults(true);
       setIsQuizActive(false);
@@ -107,9 +139,7 @@ export default function Sidebar() {
 
   // Fetch questions when tech and level selected
   useEffect(() => {
-    if (selectedTech && selectedLevel) {
-      fetchQuestions();
-    }
+    if (selectedTech && selectedLevel) fetchQuestions();
     // eslint-disable-next-line
   }, [selectedTech, selectedLevel]);
 
@@ -123,7 +153,6 @@ export default function Sidebar() {
         setCurrentQuestion(0);
         setUserAnswers({});
         setShowResults(false);
-
         setTimer(QUIZ_DURATION);
         setIsQuizActive(true);
 
@@ -143,7 +172,6 @@ export default function Sidebar() {
   const currentQuestions = getQuestions();
   const currentQ = currentQuestions[currentQuestion];
 
-  // EVENTS
   const handleAnswerSelect = (index) => {
     setUserAnswers({ ...userAnswers, [currentQuestion]: index });
 
@@ -205,19 +233,37 @@ export default function Sidebar() {
 
   return (
     <div className="flex min-h-screen bg-gray-50 relative">
-      {/* ✅ MOBILE TOP BAR (no overlap now) */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-[60] bg-white/90 backdrop-blur-md shadow px-4 py-3 flex items-center justify-between">
-        <p className="font-bold text-gray-800">
+      {/* ✅ MOBILE TOP BAR */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-[60] bg-white/90 backdrop-blur-md shadow px-3 py-3 flex items-center justify-between gap-2">
+        <p className="font-bold text-gray-800 truncate">
           {selectedTech ? `Quiz - ${selectedTech.toUpperCase()}` : "Quiz"}
         </p>
 
-        {/* optional: hide menu during quiz */}
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow"
-        >
-          ☰ Menu
-        </button>
+        <div className="flex items-center gap-2">
+          {/* ✅ login/logout in topbar */}
+          {!loggedIn ? (
+            <button
+              onClick={() => navigate("/login")}
+              className="flex items-center gap-1 bg-blue-600 text-white px-3 py-2 rounded-lg shadow text-sm"
+            >
+              <LogIn size={16} /> Login
+            </button>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1 bg-red-500 text-white px-3 py-2 rounded-lg shadow text-sm"
+            >
+              <LogOut size={16} /> Logout
+            </button>
+          )}
+
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="bg-blue-600 text-white px-3 py-2 rounded-lg shadow text-sm"
+          >
+            ☰ Menu
+          </button>
+        </div>
       </div>
 
       {/* ✅ Overlay for mobile */}
@@ -254,8 +300,6 @@ export default function Sidebar() {
               setSelectedTech(t.id);
               setSelectedLevel(null);
               resetQuiz();
-
-              // ✅ close drawer in mobile
               if (window.innerWidth < 768) setIsSidebarOpen(false);
             }}
             className={`flex items-center gap-2 w-full mb-2 p-2 rounded transition-all duration-200 ${
@@ -279,8 +323,6 @@ export default function Sidebar() {
                 onClick={() => {
                   setSelectedLevel(l.id);
                   resetQuiz();
-
-                  // ✅ close drawer in mobile
                   if (window.innerWidth < 768) setIsSidebarOpen(false);
                 }}
                 className={`flex items-center gap-2 w-full mt-2 p-2 rounded transition-all duration-200 ${
@@ -294,10 +336,32 @@ export default function Sidebar() {
             ))}
           </>
         )}
+
+        {/* ✅ Login/Logout inside drawer bottom (extra good UX) */}
+        <div className="mt-8 border-t pt-4 md:hidden">
+          {!loggedIn ? (
+            <button
+              onClick={() => {
+                setIsSidebarOpen(false);
+                navigate("/login");
+              }}
+              className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2"
+            >
+              <LogIn size={18} /> Login
+            </button>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="w-full bg-red-500 text-white py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2"
+            >
+              <LogOut size={18} /> Logout
+            </button>
+          )}
+        </div>
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 p-4 sm:p-6 pt-20 md:pt-6">
+      <main className="flex-1 p-4 sm:p-6 pt-24 md:pt-6">
         {!selectedTech || !selectedLevel ? (
           <div className="h-full flex items-center justify-center">
             <div className="max-w-2xl w-full text-center">
