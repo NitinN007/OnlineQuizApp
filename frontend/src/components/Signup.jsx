@@ -103,6 +103,7 @@ export default function Signup() {
 
       navigate("/login");
     } catch (err) {
+      console.error(err);
       setSubmitError("Network error");
     } finally {
       setLoading(false);
@@ -111,32 +112,35 @@ export default function Signup() {
 
   // ---------- UI ----------
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-purple-50 px-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl">
-        <h2 className="text-3xl font-bold text-center mb-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 px-4 sm:px-6 py-8">
+      <div className="w-full max-w-md bg-white p-5 sm:p-8 rounded-2xl shadow-lg sm:shadow-xl">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-5 sm:mb-6">
           Create Account
         </h2>
 
         {submitError && (
-          <p className="mb-4 text-red-600 text-center">
+          <p className="mb-4 text-red-600 text-center text-sm sm:text-base">
             {submitError}
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
           {/* Name */}
           <div>
-            <label className="block mb-2 font-medium">Name</label>
+            <label className="block mb-2 font-medium text-sm sm:text-base">
+              Name
+            </label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
               onBlur={handleBlur}
-              className="w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-blue-500"
+              placeholder="Your name"
+              className="w-full px-4 py-3 sm:py-3.5 border-2 rounded-lg focus:outline-none focus:border-blue-500 text-sm sm:text-base"
             />
             {errors.name && touched.name && (
-              <p className="text-sm text-red-500 mt-1">
+              <p className="text-xs sm:text-sm text-red-500 mt-1">
                 {errors.name}
               </p>
             )}
@@ -144,7 +148,7 @@ export default function Signup() {
 
           {/* Email */}
           <div>
-            <label className="block mb-2 font-medium">
+            <label className="block mb-2 font-medium text-sm sm:text-base">
               Email Address
             </label>
             <input
@@ -153,10 +157,11 @@ export default function Signup() {
               value={formData.email}
               onChange={handleChange}
               onBlur={handleBlur}
-              className="w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-blue-500"
+              placeholder="example@gmail.com"
+              className="w-full px-4 py-3 sm:py-3.5 border-2 rounded-lg focus:outline-none focus:border-blue-500 text-sm sm:text-base"
             />
             {errors.email && touched.email && (
-              <p className="text-sm text-red-500 mt-1">
+              <p className="text-xs sm:text-sm text-red-500 mt-1">
                 {errors.email}
               </p>
             )}
@@ -164,7 +169,7 @@ export default function Signup() {
 
           {/* Password */}
           <div>
-            <label className="block mb-2 font-medium">
+            <label className="block mb-2 font-medium text-sm sm:text-base">
               Password
             </label>
             <input
@@ -173,10 +178,11 @@ export default function Signup() {
               value={formData.password}
               onChange={handleChange}
               onBlur={handleBlur}
-              className="w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-blue-500"
+              placeholder="Create a password"
+              className="w-full px-4 py-3 sm:py-3.5 border-2 rounded-lg focus:outline-none focus:border-blue-500 text-sm sm:text-base"
             />
             {errors.password && touched.password && (
-              <p className="text-sm text-red-500 mt-1">
+              <p className="text-xs sm:text-sm text-red-500 mt-1">
                 {errors.password}
               </p>
             )}
@@ -185,14 +191,14 @@ export default function Signup() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-linear-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg hover:scale-[1.02] transition"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 sm:py-3.5 rounded-lg hover:scale-[1.02] transition text-sm sm:text-base font-semibold disabled:opacity-70"
           >
             {loading ? "Creating..." : "Sign Up"}
           </button>
         </form>
 
         {/* Login link */}
-        <p className="mt-6 text-center text-gray-600">
+        <p className="mt-5 sm:mt-6 text-center text-gray-600 text-sm sm:text-base">
           Already have an account?{" "}
           <button
             onClick={() => navigate("/login")}
