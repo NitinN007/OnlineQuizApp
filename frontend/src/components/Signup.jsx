@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function Signup() {
   const navigate = useNavigate();
-  const API_BASE = "http://localhost:4000";
+  const API_BASE = import.meta.env.VITE_API_BASE;
 
   const [formData, setFormData] = useState({
     name: "",
